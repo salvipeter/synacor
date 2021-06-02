@@ -56,7 +56,8 @@ void VM::run() {
       case 18: ip = stack.top(); stack.pop(); break;
       case 19: std::cout << (char)get(ip++); break; 
       case 20: if (buffer_index == buffer.size()) {
-                 std::cin >> buffer;
+                 std::getline(std::cin, buffer);
+                 buffer += '\n';
                  buffer_index = 0;
                }
                reg(ip++) = buffer[buffer_index++];
