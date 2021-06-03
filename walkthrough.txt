@@ -56,7 +56,46 @@ north
 take teleporter
 use teleporter
 
+-- normal version --
+
 [code]
 
 take business card
 take strange book
+look strange book
+
+-- hacked version --
+
+[code]
+
+north
+north
+north
+north
+north
+north
+north
+east
+take journal
+look journal
+west
+north
+north
+take orb
+north
+east
+east
+north
+west
+south
+east
+east
+west
+north
+north
+east
+vault
+take mirror
+use mirror
+
+[code (mirrored - note the p/q & d/b)]

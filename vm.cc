@@ -14,7 +14,7 @@ class VM {
   bool show_cmds = false;
 public: 
   void loadImage(std::string);
-  void run();
+  void run(bool hack_teleport);
 private:
   uint16_t get(uint16_t i) const { 
     uint16_t n = memory[i];
@@ -70,7 +70,7 @@ void VM::showCommand(uint16_t k, bool show_registers) const {
   std::cout << std::endl;
 }
 
-void VM::run() {
+void VM::run(bool hack_teleport) {
   bool stopped = false;
   while (!stopped) {
     if (show_cmds)
@@ -100,7 +100,7 @@ void VM::run() {
                  std::getline(std::cin, buffer);
                  buffer += '\n';
                  buffer_index = 0;
-                 if (buffer == "use teleporter\n") {
+                 if (hack_teleport && buffer == "use teleporter\n") {
                    // show_cmds = true;
                    regs[7] = 25734;
                    memory[5485] = 6;  // simulate correct computation
@@ -118,6 +118,6 @@ void VM::run() {
 int main(int argc, char **argv) {
   VM vm;
   vm.loadImage("challenge.bin");
-  vm.run();
+  vm.run(argc > 1);
 }
 
