@@ -1,3 +1,8 @@
+(first code is in the architecture specification)
+
+[code]
+[code]
+
 take tablet
 use tablet
 
