@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <stack>
+#include <vector>
 
 class VM {
   std::array<uint16_t, 8> regs;
@@ -10,6 +11,7 @@ class VM {
   uint16_t ip = 0;
   std::string buffer;
   size_t buffer_index = 0;
+  bool show_cmds = false;
 public: 
   void loadImage(std::string);
   void run();
@@ -19,6 +21,7 @@ private:
     return n < 32768 ? n : regs[n-32768]; 
   }
   uint16_t &reg(uint16_t i) { return regs[memory[i]-32768]; }
+  void showCommand(uint16_t k, bool show_registers) const;
 };
 
 void VM::loadImage(std::string filename) {
@@ -29,11 +32,49 @@ void VM::loadImage(std::string filename) {
     f.read(block, 2);
     memory[i++] = *reinterpret_cast<uint16_t *>(block);
   }
+  // Print the whole program
+  // for (size_t k = 0; k < i; ++k)
+  //   showCommand(k, false);
+}
+
+// For reverse engineering
+void VM::showCommand(uint16_t k, bool show_registers) const {
+  std::vector<std::string> cmds = {
+    "halt", "set", "push", "pop",
+    "eq", "gt", "jmp", "jt", "jf",
+    "add", "mul", "mod", "and", "or", "not",
+    "rmem", "wmem", "call", "ret",
+    "out", "in", "noop"
+  };
+  std::vector<size_t> args = {
+    0, 2, 1, 1, 3, 3, 1, 2, 2, 3, 3, 3, 3, 3, 2, 2, 2, 1, 0, 1, 1, 0
+  };
+  auto writeParam = [&](uint16_t i) {
+    uint16_t n = memory[i];
+    if (n >= 32768) {
+      std::cout << 'r' << n - 32767;
+      if (show_registers)
+        std::cout << "[=" << regs[n-32768] << "]";
+    } else
+      std::cout << n;
+  };
+  std::cout << k;
+  auto cmd = memory[k];
+  if (cmd <= 21) {
+    std::cout << '\t' << cmds[memory[k]] << '\t';
+    for (size_t i = 1; i <= args[memory[k]]; ++i) {
+      std::cout << ' ';
+      writeParam(k + i);
+    }
+  }
+  std::cout << std::endl;
 }
 
 void VM::run() {
   bool stopped = false;
-  while (!stopped)
+  while (!stopped) {
+    if (show_cmds)
+      showCommand(ip, true);
     switch(memory[ip++]) {
       case 0: stopped = true; break;
       case 1: reg(ip) = get(ip + 1); ip += 2; break;
@@ -59,19 +100,24 @@ void VM::run() {
                  std::getline(std::cin, buffer);
                  buffer += '\n';
                  buffer_index = 0;
+                 if (buffer == "use teleporter\n") {
+                   // show_cmds = true;
+                   regs[7] = 25734;
+                   memory[5485] = 6;  // simulate correct computation
+                   memory[5489] = 21; // noops instead of calling
+                   memory[5490] = 21; // the recursive function in 6027
+                 }
                }
                reg(ip++) = buffer[buffer_index++];
                break;
       case 21: break;
     }
+  }
 }
 
 int main(int argc, char **argv) {
-  std::string filename = "challenge.bin";
-  if (argc > 1)
-    filename = argv[1];
   VM vm;
-  vm.loadImage(filename);
+  vm.loadImage("challenge.bin");
   vm.run();
 }
 
